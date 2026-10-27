@@ -19,7 +19,7 @@ The upstream game is unchanged, apart from one fix (see [Upstream changes](#upst
 |---|---|
 | `Assets/Edgegap/Resources/EdgegapSettings.asset` | All settings: mode, ports, matchmaker URL and token. |
 | `Assets/Edgegap/EdgegapBootstrap.cs` | Runs before the scene loads. In builds, it turns off PurrNet's auto start and adds the components below. In the Editor, play mode keeps PurrNet's normal host + clone flow unless **Apply In Editor** is ticked. |
-| `Assets/Edgegap/EdgegapServerLifecycle.cs` | Server builds. Starts the PurrNet server on `0.0.0.0:5000`. On Edgegap, stops the deployment when nobody joins within 120 s or 30 s after the last player leaves. Logs `N player(s) connected.` |
+| `Assets/Edgegap/EdgegapServerLifecycle.cs` | Server builds. Starts the PurrNet server on `0.0.0.0:7777`. On Edgegap, stops the deployment when nobody joins within 120 s or 30 s after the last player leaves. Logs `N player(s) connected.` |
 | `Assets/Edgegap/EdgegapConnectPanel.cs` | Client builds. The connect panel: address and port (direct), or Find Match (matchmaker). Reloads the scene when the connection drops. |
 | `Assets/Edgegap/EdgegapMatchmakingClient.cs`, `EdgegapMatchmakingDTOs.cs` | Matchmaker mode only. Creates a ticket, waits for `HOST_ASSIGNED`, then connects to the server's public IP and external port. |
 | `Assets/Edgegap/Editor/EdgegapServerBuild.cs` | **Tools → Edgegap → Build Linux Dedicated Server**, plus command-line server and client builds. |
@@ -42,10 +42,10 @@ The sample uses UDP, so clients are desktop builds (Windows, macOS, Linux). WebG
 3. Run it in Docker:
    ```bash
    docker build --platform linux/amd64 -t purrnet-incremental:local .
-   docker run --rm -p 5000:5000/udp purrnet-incremental:local
+   docker run --rm -p 7777:7777/udp purrnet-incremental:local
    ```
-   The log shows `Edgegap Server | Starting server on 0.0.0.0:5000.`
-4. Build the client (**File → Build Profiles**, any desktop platform) and start it twice. Each window shows the connect panel with `127.0.0.1` / `5000`. Click **Connect** in both. The server logs `Edgegap Server | 2 player(s) connected.`
+   The log shows `Edgegap Server | Starting server on 0.0.0.0:7777.`
+4. Build the client (**File → Build Profiles**, any desktop platform) and start it twice. Each window shows the connect panel with `127.0.0.1` / `7777`. Click **Connect** in both. The server logs `Edgegap Server | 2 player(s) connected.`
 
 Play mode in the Editor still works as upstream: it starts a host, and a ParrelSync clone joins it.
 
@@ -59,7 +59,7 @@ Play mode in the Editor still works as upstream: it starts a host, and a ParrelS
    ```
    Use a new tag for every build, never `latest`.
 2. In the [dashboard](https://app.edgegap.com), create an application, then a version for that image:
-   - **Port:** name `gameport`, port `5000`, protocol **UDP**.
+   - **Port:** name `gameport`, port `7777`, protocol **UDP**.
    - **Registry username and token:** from the Container Registry page. Without them, deployments fail to pull the image. Push the image before saving the version; the dashboard checks that the tag exists.
 3. Deploy the version (**Deploy** on the version page). When it's ready, open the deployment and note its host (`<id>.pr.edgegap.net`) and the external port of `gameport`.
 4. Start two clients, enter that host and port in the connect panel, and click **Connect**.
