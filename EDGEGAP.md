@@ -22,49 +22,45 @@ The upstream game is unchanged, apart from one fix (see [Upstream changes](#upst
 | `Assets/Edgegap/EdgegapServerLifecycle.cs` | Server builds. Starts the PurrNet server on `0.0.0.0:7777`. On Edgegap, stops the deployment when nobody joins within 120 s or 30 s after the last player leaves. Logs `N player(s) connected.` |
 | `Assets/Edgegap/EdgegapConnectPanel.cs` | Client builds. The connect panel: address and port (direct), or Find Match (matchmaker). Reloads the scene when the connection drops. |
 | `Assets/Edgegap/EdgegapMatchmakingClient.cs`, `EdgegapMatchmakingDTOs.cs` | Matchmaker mode only. Creates a ticket, waits for `HOST_ASSIGNED`, then connects to the server's public IP and external port. |
-| `Assets/Edgegap/Editor/EdgegapServerBuild.cs` | **Tools → Edgegap → Build Linux Dedicated Server**, plus command-line server and client builds. |
-| `Dockerfile`, `.dockerignore` | Container image for the server build. |
+| `Assets/Edgegap/Editor/EdgegapPluginBuild.cs` | Command-line entry point for the plugin's **Build server** (scripted tests, CI): `Unity -batchmode -projectPath . -executeMethod EdgegapPluginBuild.BuildServer -logFile build-server.log`. Same output, `Builds/EdgegapServer/`. |
+| `.dockerignore` | The plugin builds the image with the project root as Docker context. This file sends only `Builds/EdgegapServer/` to Docker instead of the whole project. |
 | `matchmaker-config.json` | Matchmaker configuration to upload in the dashboard. |
-| `Packages/manifest.json` | Adds `com.edgegap.unity-sdk` pinned to `3.5.5`, and pins PurrNet to `v1.22.0-beta.11` instead of its `dev` branch. See [Package versions](#package-versions). |
+| `Packages/manifest.json` | Adds the [Edgegap Unity plugin](https://github.com/edgegap/buildtool-unity-plugin) (`com.edgegap.unity-servers-plugin`, `#3.2.1`), which builds, containerizes, uploads and deploys the server from **Tools → Edgegap Server Hosting**, and `com.edgegap.unity-sdk` pinned to `3.5.5`, and pins PurrNet to `v1.22.0-beta.11` instead of its `dev` branch. See [Package versions](#package-versions). |
 
 ## Requirements
 
 - Unity 6 (`6000.3.x`) with the **Linux Build Support (Mono)** and **Linux Dedicated Server Build Support** modules, plus the module for your client platform.
-- [Docker](https://docs.docker.com/get-docker/).
+- [Docker Desktop](https://docs.docker.com/get-docker/), running.
 - An [Edgegap account](https://app.edgegap.com) (the free tier is enough).
 
 The sample uses UDP, so clients are desktop builds (Windows, macOS, Linux). WebGL would need PurrNet's `WebTransport` and a WebSocket port with TLS Upgrade on the app version.
 
-## 1. Play locally (direct connection)
+## 1. Build and play locally
 
-1. Open the project in Unity 6.
-2. Build the server: **Tools → Edgegap → Build Linux Dedicated Server**. The output goes to `Builds/EdgegapServer/`.
-3. Run it in Docker:
-   ```bash
-   docker build --platform linux/amd64 -t purrnet-incremental:local .
-   docker run --rm -p 7777:7777/udp purrnet-incremental:local
-   ```
-   The log shows `Edgegap Server | Starting server on 0.0.0.0:7777.`
-4. Build the client (**File → Build Profiles**, any desktop platform) and start it twice. Each window shows the connect panel with `127.0.0.1` / `7777`. Click **Connect** in both. The server logs `Edgegap Server | 2 player(s) connected.`
+Open the project in Unity 6, then **Tools → Edgegap Server Hosting**:
+
+1. **Connect your Edgegap Account**: **Sign in with Edgegap** (or paste a token from **Get token**), then **Validate**.
+2. **Build Your Game Server**: **Build server**. The output goes to `Builds/EdgegapServer/`.
+3. **Containerize Your Server**: set **Image Name** to `purrnet-incremental`, leave **Image Tag** empty (the plugin uses the current UTC time) and the Dockerfile path on its default, then **Containerize with Docker**.
+4. **Test Your Server Locally**: set **Optional Docker Run Parameters** to `-p 7777:7777/udp`, then **Deploy local container**. The plugin passes mock Edgegap variables (`gameport` on 7777), so Docker Desktop shows `Edgegap Server | Starting server on 0.0.0.0:7777.`
+5. Build the client (**File → Build Profiles**, any desktop platform) and start it twice. Each window shows the connect panel with `127.0.0.1` / `7777`. Click **Connect** in both. The server logs `Edgegap Server | 2 player(s) connected.`
+
+The mock variables make the server behave as on Edgegap: it exits 120 s after start if nobody joins, or 30 s after the last player leaves. Click **Terminate** before the next **Deploy local container**.
 
 Play mode in the Editor still works as upstream: it starts a host, and a ParrelSync clone joins it.
 
 ## 2. Play on an Edgegap server (direct connection)
 
-1. Push the image to your Edgegap registry. Your registry project, username and token are on the dashboard's **Container Registry** page.
-   ```bash
-   docker login registry.edgegap.com
-   docker build --platform linux/amd64 -t registry.edgegap.com/<project>/purrnet-incremental:v1 .
-   docker push registry.edgegap.com/<project>/purrnet-incremental:v1
-   ```
-   Use a new tag for every build, never `latest`.
-2. In the [dashboard](https://app.edgegap.com), create an application, then a version for that image:
-   - **Port:** name `gameport`, port `7777`, protocol **UDP**.
-   - **Registry username and token:** from the Container Registry page. Without them, deployments fail to pull the image. Push the image before saving the version; the dashboard checks that the tag exists.
-3. Deploy the version (**Deploy** on the version page). When it's ready, open the deployment and note its host (`<id>.pr.edgegap.net`) and the external port of `gameport`.
-4. Start two clients, enter that host and port in the connect panel, and click **Connect**.
+Still in the plugin window:
 
-Once both players leave, the server stops its own deployment after 30 s.
+1. **Upload to Edgegap**: enter an **Application Name** (for example `purrnet-incremental`), then **Upload image and Create app version**. The plugin pushes the image to your Edgegap registry, creates the application if needed, and opens the dashboard's version form with the image and tag filled in. On that form:
+   - **Port:** replace the form's default port with name `gameport`, port `7777`, protocol **UDP**.
+   - **Registry credentials:** if the form asks for them, use the username and token from the dashboard's **Container Registry** page. Without them, deployments fail to pull the image.
+   - Keep the version name the plugin proposes (the image tag), and save.
+2. **Deploy a Server on Edgegap**: pick the application and version, then **Deploy to cloud**. When it's ready, open the deployment in the dashboard and note its host (`<id>.pr.edgegap.net`) and the external port of `gameport`.
+3. Start two clients, enter that host and port in the connect panel, and click **Connect**.
+
+Once both players leave, the server stops its own deployment after 30 s. **Stop last deployment** in the plugin stops it right away.
 
 ## 3. Turn on the Edgegap Matchmaker (optional)
 
@@ -102,7 +98,9 @@ Game.exe -screen-fullscreen 0 -edgegapAddress 1a2b3c4d5e6f.pr.edgegap.net -edgeg
 
 ## Shipping a new server build
 
-Build the server → push a new tag → create a new app version (or edit the tag on a test version) → if you use the matchmaker: **Stop → Edit** `application.version` **→ Start**.
+In the plugin, **Upload to Edgegap → Rebuild from Source** builds the server, containerizes it with a fresh timestamp tag and pushes it, then opens the version form again: add the `gameport` port and save. If you use the matchmaker: **Stop → Edit** `application.version` **→ Start**.
+
+For CI, [edgegap/deploy-action](https://github.com/edgegap/deploy-action) creates the new version from an existing one, smoke-tests it and promotes it.
 
 ## Upstream changes
 
@@ -120,7 +118,9 @@ Edgegap files live in their own folder, so conflicts are limited to `Packages/ma
 
 ## Package versions
 
-`Packages/manifest.json` pins the two git packages to the versions the sample was tested with, so every clone builds the same code:
+`Packages/manifest.json` pins the git packages to the versions the sample was tested with, so every clone builds the same code:
+
+- [buildtool-unity-plugin](https://github.com/edgegap/buildtool-unity-plugin) `#3.2.1` (release tag), the Edgegap Unity plugin. Editor only: it isn't included in game builds.
 
 - [edgegap-unity-sdk](https://github.com/edgegap/edgegap-unity-sdk) `#3.5.5` (release tag).
 - [PurrNet](https://github.com/PurrNet/PurrNet) `#v1.22.0-beta.11`, the tag on commit `a311c06`. The sample previously followed PurrNet's `dev` branch.
