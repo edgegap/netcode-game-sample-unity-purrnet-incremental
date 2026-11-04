@@ -1,5 +1,7 @@
 # Incremental Game Sample - PurrNet 🐱
 
+![Add Edgegap matchmaking and dedicated game servers to PurrNet's Incremental Game Sample in Unity.](docs/images/card.jpg)
+
 > **Edgegap fork.** This fork runs the sample on [Edgegap](https://edgegap.com) dedicated servers, with optional Edgegap matchmaking (off by default). See [EDGEGAP.md](EDGEGAP.md). Upstream: [PurrNet/PurrNet-Incremental-Sample](https://github.com/PurrNet/PurrNet-Incremental-Sample).
 
 ![Incremental Game Sample](gameplay.gif)
