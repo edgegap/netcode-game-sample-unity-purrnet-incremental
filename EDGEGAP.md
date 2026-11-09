@@ -25,7 +25,7 @@ The upstream game is unchanged, apart from one fix (see [Upstream changes](#upst
 | `Assets/Edgegap/Editor/EdgegapPluginBuild.cs` | Command-line entry point for the plugin's **Build server** (scripted tests, CI): `Unity -batchmode -projectPath . -executeMethod EdgegapPluginBuild.BuildServer -logFile build-server.log`. Same output, `Builds/EdgegapServer/`. |
 | `.dockerignore` | The plugin builds the image with the project root as Docker context. This file sends only `Builds/EdgegapServer/` to Docker instead of the whole project. |
 | `matchmaker-config.json` | Matchmaker configuration to upload in the dashboard. |
-| `Packages/manifest.json` | Adds the [Edgegap Unity plugin](https://github.com/edgegap/buildtool-unity-plugin) (`com.edgegap.unity-servers-plugin`, `#3.2.1`), which builds, containerizes, uploads and deploys the server from **Tools → Edgegap Server Hosting**, and `com.edgegap.unity-sdk` pinned to `3.5.5`, and pins PurrNet to `v1.22.0-beta.11` instead of its `dev` branch. See [Package versions](#package-versions). |
+| `Packages/manifest.json` | Adds the [Edgegap Unity plugin](https://github.com/edgegap/buildtool-unity-plugin) (`com.edgegap.unity-servers-plugin`, `#3.2.2`), which builds, containerizes, uploads and deploys the server from **Tools → Edgegap Server Hosting**, and `com.edgegap.unity-sdk` pinned to `3.5.5`, and pins PurrNet to `v1.22.0-beta.11` instead of its `dev` branch. See [Package versions](#package-versions). |
 
 ## Requirements
 
@@ -120,7 +120,7 @@ Edgegap files live in their own folder, so conflicts are limited to `Packages/ma
 
 `Packages/manifest.json` pins the git packages to the versions the sample was tested with, so every clone builds the same code:
 
-- [buildtool-unity-plugin](https://github.com/edgegap/buildtool-unity-plugin) `#3.2.1` (release tag), the Edgegap Unity plugin. Editor only: it isn't included in game builds.
+- [buildtool-unity-plugin](https://github.com/edgegap/buildtool-unity-plugin) `#3.2.2` (release tag), the Edgegap Unity plugin. Editor only: it isn't included in game builds.
 
 - [edgegap-unity-sdk](https://github.com/edgegap/edgegap-unity-sdk) `#3.5.5` (release tag).
 - [PurrNet](https://github.com/PurrNet/PurrNet) `#v1.22.0-beta.11`, the tag on commit `a311c06`. The sample previously followed PurrNet's `dev` branch.
