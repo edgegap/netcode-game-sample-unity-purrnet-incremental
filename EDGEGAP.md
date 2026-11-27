@@ -29,6 +29,7 @@ The upstream game is unchanged, apart from one fix (see [Upstream changes](#upst
 
 ## Requirements
 
+- On Windows, keep the project path short (for example `C:\w\purrnet`). Unity's package cache and server build can fail with `DirectoryNotFoundException` under long paths such as `OneDrive\Desktop\...`.
 - Unity 6 (`6000.3.x`) with the **Linux Build Support (Mono)** and **Linux Dedicated Server Build Support** modules, plus the module for your client platform.
 - [Docker Desktop](https://docs.docker.com/get-docker/), running.
 - An [Edgegap account](https://app.edgegap.com) (the free tier is enough).
@@ -68,12 +69,12 @@ The matchmaker is off by default. Turn it on once direct connection works:
 
 1. In `matchmaker-config.json`, set `application.name` and `version` to your application and version.
 2. Dashboard → **Matchmaker** → **Create Matchmaker** → upload the file → **Create and Start**.
-3. Select `Assets/Edgegap/Resources/EdgegapSettings.asset`. Tick **Use Edgegap Matchmaker**, then paste the matchmaker's **API URL** into **Matchmaker Url** and its **Auth Token** into **Matchmaker Auth Token**. The Auth Token is meant for game clients: it only allows matchmaking calls and gives no access to your Edgegap account.
+3. Select `Assets/Edgegap/Resources/EdgegapSettings.asset`. Tick **Use Edgegap Matchmaker**, then paste the matchmaker's **API URL** into **Matchmaker Url** and its **Auth Token** into **Matchmaker Auth Token**. **Profile** is the profile name from `matchmaker-config.json` (`casual`); change it if you rename the profile, or add your own to a shared matchmaker. The Auth Token is meant for game clients: it only allows matchmaking calls and gives no access to your Edgegap account.
 4. Rebuild the client, start it twice and click **Find Match** in both. The status goes through searching → match found → joining → connected, and both players land on the same server.
 
 The `casual` profile matches 2 to 4 players.
 
-**Playing alone:** the profile lowers `min_team_size` to 1 after 20 s, and tickets expire after 30 s (`ticket_expiration_period`). With the earlier shape (`"30"` expansion to 1, 5-minute expiration) on matchmaker 3.3.2, a lone ticket in Edgegap's FishNet sample was only given a server around its expiry, so the expiration is now 30 s to keep that wait short. This sample's lone-player case was not tested. If no server comes before the ticket expires, the panel shows "No match found in time, try again." To play alone, use direct connection, or test the matchmaker with two clients.
+**Playing alone:** the profile lowers `min_team_size` to 1 after 20 s, and tickets expire after 30 s (`ticket_expiration_period`). With the earlier shape (`"30"` expansion to 1, 5-minute expiration) on matchmaker 3.3.2, a lone ticket in Edgegap's FishNet sample was only given a server around its expiry, so the expiration is now 30 s to keep that wait short. If no server comes before the ticket expires, the panel shows "No match found in time, try again." To play alone, use direct connection, or test the matchmaker with two clients.
 
 **Known limitation:** the server does not check that a connecting player holds a matchmaker ticket for this match, so anyone who learns the server address can join. Deployments stop themselves when no one joins or everyone leaves, which limits cost. Before production, validate each player against the match's tickets (`MM_TICKET_IDS` / the matchmaker API) or an auth token.
 
@@ -87,6 +88,7 @@ Command-line options override `EdgegapSettings` in builds. They're useful for sc
 | `-edgegapConnect` | Connect directly on startup |
 | `-edgegapMatchmaker true\|false` | Turn matchmaker mode on or off |
 | `-edgegapMatchmakerUrl <url> -edgegapAuthToken <token>` | Matchmaker URL and Auth Token |
+| `-edgegapProfile <name>` | Matchmaker profile name (default `casual`) |
 | `-edgegapFindMatch` | Find a match on startup |
 | `-edgegapListenPort <port>` | Server listen port (must match the app version's internal port) |
 
