@@ -88,6 +88,7 @@ Command-line options override `EdgegapSettings` in builds. They're useful for sc
 | `-edgegapConnect` | Connect directly on startup |
 | `-edgegapMatchmaker true\|false` | Turn matchmaker mode on or off |
 | `-edgegapMatchmakerUrl <url> -edgegapAuthToken <token>` | Matchmaker URL and Auth Token |
+| `-edgegapProfile <name>` | Matchmaker profile name (default `casual`) |
 | `-edgegapFindMatch` | Find a match on startup |
 | `-edgegapListenPort <port>` | Server listen port (must match the app version's internal port) |
 
